@@ -1,0 +1,124 @@
+# Question 2.
+# 1) first create a pod file byname q2.yaml
+# 2) where your pod name is adhocpod1.
+kubectl run adhocpod1 --image=nginx --port 80 --dry-run -o yaml
+kubectl get pods
+#3) use container port 80 and docker image nginx.
+kubectl run adhocpod1 --image=nginx --port 80 --dry-run -o yaml >q2.yaml
+# 4) label of the pod must be adhoc: mananq2
+kubectl create -f q2.yaml
+# 5) then create a svc by exposing the pod file
+kubectl expose pods adhocpod1 --type NodePort --port 80
+kubectl get svc
+# 6) then by svc port and master ip go to web browser and access the page as
+http://3.218.1.117:30389/
+#7) this will access the page.
+
+======================================================================================================
+
+# Question 7.
+#Create a a pod file named q7.yaml where your pod name is adhocpod7
+kubectl run adhocpod7 --image=alpine --dry-run -o yaml
+kubectl run adhocpod7 --image=alpine --dry-run -o yaml  >q7.yaml
+vim q7.yaml
+#make changes to the file
+#give label name as adhoc:mananq7
+#in spec create a volume and give a volume name
+#create a emtyDir: {}
+#mount the path in /mnt/date.txt
+#use command :     command: ["/bin/sh","-c","while true ; do date  >>/mnt/date.txt/adhocoutput.txt;sleep 2;done"]
+# save the file:
+kubectl apply -f q7.yaml
+kubectl get po
+kubectl get po -o wide
+kubectl exec -it adhocpod7 sh
+#inside the pod do
+ls
+cd mnt
+ls
+cd date.txt
+ls
+cd adhocoutput.txt
+# and after this store the o/p to output.txt
+
+======================================================================================================
+
+# Question 1.
+###=========================CLone APP======================================
+git clone https://github.com/mdn/beginner-html-site-styled
+git clone https://github.com/microsoft/project-html-website
+###========================adhochttpd.dockerfile==============================================
+mkdir q1
+cd q1
+vim adhochttpd.dockerfile
+###
+FROM centos
+MAINTAINER pybot manan3349@gmail.com
+RUN yum install -y httpd
+ENV x=app1
+EXPOSE 80
+RUN mkdir /code
+WORKDIR /code
+COPY beginner-html-site-styled app1
+COPY project-html-website app2
+COPY start.sh start.sh
+RUN chmod +x start.sh
+ENTRYPOINT ["/bin/bash","start.sh"]
+===========================================start.sh====================================
+vim start.sh
+###
+#!/bin/bash
+
+if [ "$x" == "app1" ]
+then
+    cp -rf app1/* /var/www/html/
+    httpd -DFOREGROUND
+
+elif [ "$x" == "app2" ]
+then
+    cp -rf app2/* /var/www/html/
+    httpd -DFOREGROUND
+fi
+===============================================BUILD=====================================
+docker build -t manan3349/may2020q1:v1 -f adhochttpd.dockerfile .
+docker images | grep manan3349
+=========================================PUSH========================================
+docker login
+docker push manan3349/may2020q1:v1
+docker logout
+
+ ======================================================================================
+# Question 4.
+docker pull manan3349/may2020q1:v1
+vim q4rs.yaml
+
+==============================q4rs.yaml===================================
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+ name: adhocrsmanan4
+ labels:
+  adhoc: mananq4  #  this is the label of RC not label of pods
+
+spec:
+ selector:
+  matchLabels:
+   adhoc: mananq4    # here alos label of pod
+ replicas: 3  #  always one pod will be present even in case of current worker node failure
+ template:
+  metadata:
+   name: mypodrs22  #  this will be the podname that will be created by RC
+   labels:
+    adhoc: mananq4
+  spec:
+   containers:
+    - name: manancrs111
+      image: manan3349/may2020q1:v1
+      ports:
+       - containerPort: 80 
+=========================================================================================
+kubectl apply -f q4rs.yaml
+kubectl get rs
+kubectl expose rs adhocrsmanan4 --type LoadBalancer --port 80
+kubectl get svc
+
